@@ -8,7 +8,7 @@ public class MeleeAttack : MonoBehaviour
 {
     [Header("Параметры удара")]
     public float range = 2f;        // дистанция удара в метрах
-    public int damage = 25;         // урон за удар
+    public int damage = 105;         // урон за удар
     public float cooldown = 0.4f;   // пауза между ударами
 
     [Header("Ссылки")]
@@ -16,6 +16,18 @@ public class MeleeAttack : MonoBehaviour
     public Transform cameraTransform;
     [Tooltip("Куб-рука для простого замаха (необязательно).")]
     public Transform handTransform;
+
+    [Header("Фидбек попадания")]
+    [Tooltip("Длительность хитстопа (реальные сек). 0 = выключить.")]
+    public float hitStopDuration = 0.05f;
+    [Tooltip("Длительность тряски камеры при попадании.")]
+    public float shakeDuration = 0.12f;
+    [Tooltip("Сила тряски при попадании по врагу (меньше, чем при уроне по игроку).")]
+    public float shakeMagnitude = 0.12f;
+    [Tooltip("Сила отскока врага.")]
+    public float knockbackForce = 12f;
+    [Tooltip("Префаб эффекта попадания (партикл/вспышка). Необязательно.")]
+    public GameObject hitEffectPrefab;
 
     private float lastAttackTime = -999f;
 
@@ -53,8 +65,29 @@ public class MeleeAttack : MonoBehaviour
         {
             Health hp = hit.collider.GetComponent<Health>();
             if (hp != null)
+            {
                 hp.TakeDamage(damage);
+                TriggerHitFeedback(hit, hp);
+            }
         }
+    }
+
+    // весь "сок" попадания: хитстоп + тряска + вспышка + отскок врага
+    void TriggerHitFeedback(RaycastHit hit, Health hp)
+    {
+        if (hitStopDuration > 0f)
+            HitStop.Instance.Freeze(hitStopDuration);
+
+        if (CameraShake.Instance != null)
+            CameraShake.Instance.Shake(shakeDuration, shakeMagnitude);
+
+        if (hitEffectPrefab != null)
+            Destroy(Instantiate(hitEffectPrefab, hit.point, Quaternion.LookRotation(hit.normal)), 2f);
+
+        // оттолкнуть врага от игрока
+        EnemyAI enemy = hp.GetComponent<EnemyAI>();
+        if (enemy != null)
+            enemy.ApplyKnockback(cameraTransform.forward, knockbackForce);
     }
 
     // простой замах: рука дёргается вперёд и возвращается

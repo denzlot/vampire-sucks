@@ -12,9 +12,21 @@ public class EnemyAI : MonoBehaviour
     public int damage = 10;
     public float attackCooldown = 1f;
 
+    [Header("Отскок (knockback)")]
+    [Tooltip("Как быстро гаснет отскок (больше = короче толчок).")]
+    public float knockbackDecay = 40f;
+
     private Transform player;
     private float lastAttackTime;
     private CharacterController cc;
+    private Vector3 knockbackVelocity;
+
+    // Вызывается ударом игрока: толкает врага в направлении direction с силой force.
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        direction.y = 0f;
+        knockbackVelocity = direction.normalized * force;
+    }
 
     void Start()
     {
@@ -28,6 +40,15 @@ public class EnemyAI : MonoBehaviour
     void Update()
     {
         if (player == null) return;
+
+        // отскок поверх обычного движения (и его затухание)
+        if (knockbackVelocity.sqrMagnitude > 0.01f)
+        {
+            Vector3 kb = knockbackVelocity * Time.deltaTime;
+            if (cc != null) cc.Move(kb);
+            else transform.position += kb;
+            knockbackVelocity = Vector3.MoveTowards(knockbackVelocity, Vector3.zero, knockbackDecay * Time.deltaTime);
+        }
 
         // направление к игроку только по горизонтали
         Vector3 toPlayer = player.position - transform.position;
@@ -54,7 +75,13 @@ public class EnemyAI : MonoBehaviour
             {
                 lastAttackTime = Time.time;
                 Health hp = player.GetComponent<Health>();
-                if (hp != null) hp.TakeDamage(damage);
+                if (hp != null && !hp.isInvulnerable)
+                {
+                    hp.TakeDamage(damage);
+                    // урон по игроку трясёт сильнее, чем наши удары по врагам
+                    if (CameraShake.Instance != null)
+                        CameraShake.Instance.Shake(0.2f, 0.3f);
+                }
             }
         }
     }
