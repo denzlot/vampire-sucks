@@ -838,6 +838,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
   currentHealth: 0
+  isInvulnerable: 0
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
@@ -861,6 +862,11 @@ MonoBehaviour:
   cooldown: 0.4
   cameraTransform: {fileID: 963194228}
   handTransform: {fileID: 100692850}
+  hitStopDuration: 0.06
+  shakeDuration: 0.12
+  shakeMagnitude: 0.12
+  knockbackForce: 12
+  hitEffectPrefab: {fileID: 0}
 --- !u!114 &439212604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -873,8 +879,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e11e40a8af5e374a8ce75213829ef62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  moveSpeed: 5
+  moveSpeed: 6
+  acceleration: 90
+  deceleration: 110
   gravity: -20
+  dashSpeed: 25
+  dashDuration: 0.15
+  dashCooldown: 2
+  dashSound: {fileID: 0}
+  dashFovKick: 8
   mouseSensitivity: 0.1
   cameraTransform: {fileID: 0}
 --- !u!1 &525041694
@@ -1322,6 +1335,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
+  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1404,6 +1418,18 @@ Transform:
   - {fileID: 100692850}
   m_Father: {fileID: 439212601}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &963194229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 320d02b522a358c4b9be405b17e63964, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraShake
 --- !u!1 &991616744
 GameObject:
   m_ObjectHideFlags: 0

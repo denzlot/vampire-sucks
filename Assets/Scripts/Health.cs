@@ -8,6 +8,9 @@ public class Health : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth;
 
+    [Tooltip("Пока true — урон не проходит (используется дэшем для i-frames).")]
+    public bool isInvulnerable = false;
+
     [Header("События (можно оставить пустыми)")]
     [Tooltip("Сработает при получении урона")]
     public UnityEvent onDamaged;
@@ -22,7 +25,8 @@ public class Health : MonoBehaviour
     // Нанести урон. Этот метод вызывают атаки игрока и врага.
     public void TakeDamage(int amount)
     {
-        if (currentHealth <= 0) return; // уже мёртв
+        if (currentHealth <= 0) return;   // уже мёртв
+        if (isInvulnerable) return;       // неуязвим (например, во время дэша)
 
         currentHealth -= amount;
         onDamaged?.Invoke();
