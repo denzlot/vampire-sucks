@@ -7,7 +7,11 @@ using UnityEngine.InputSystem; // новый Input System
 public class PlayerController : MonoBehaviour
 {
     [Header("Движение")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 6f;
+    [Tooltip("Как быстро набирается скорость (ед/сек²). Больше = резче старт.")]
+    public float acceleration = 80f;
+    [Tooltip("Как быстро гасится скорость при отпускании клавиш (ед/сек²). Больше = резче стоп.")]
+    public float deceleration = 100f;
     public float gravity = -20f;
 
     [Header("Обзор мышью")]
@@ -18,6 +22,7 @@ public class PlayerController : MonoBehaviour
     private CharacterController controller;
     private float verticalVelocity;
     private float pitch; // наклон камеры вверх/вниз
+    private Vector3 horizontalVelocity; // текущая скорость по полу (для плавного разгона)
 
     void Start()
     {
@@ -70,14 +75,25 @@ public class PlayerController : MonoBehaviour
             if (kb.aKey.isPressed) input.x -= 1;
         }
 
-        // направление относительно того, куда смотрит игрок
-        Vector3 move = transform.right * input.x + transform.forward * input.y;
-        move = Vector3.ClampMagnitude(move, 1f) * moveSpeed;
+        // направление относительно того, куда смотрит игрок (нормализуем, чтобы по диагонали не было быстрее)
+        Vector3 inputDir = transform.right * input.x + transform.forward * input.y;
+        inputDir = Vector3.ClampMagnitude(inputDir, 1f);
+
+        // куда хотим: целевая скорость по полу
+        Vector3 targetVelocity = inputDir * moveSpeed;
+
+        // плавно подводим текущую скорость к целевой:
+        // есть ввод — разгон (acceleration), нет ввода — торможение (deceleration)
+        float rate = (inputDir.sqrMagnitude > 0.01f) ? acceleration : deceleration;
+        horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.deltaTime);
 
         // простая гравитация, чтобы прилипать к полу
         if (controller.isGrounded && verticalVelocity < 0)
             verticalVelocity = -2f;
         verticalVelocity += gravity * Time.deltaTime;
+
+        // собираем итоговое перемещение: горизонталь + вертикаль
+        Vector3 move = horizontalVelocity;
         move.y = verticalVelocity;
 
         controller.Move(move * Time.deltaTime);
