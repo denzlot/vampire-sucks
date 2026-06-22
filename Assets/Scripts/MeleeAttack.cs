@@ -20,10 +20,9 @@ public class MeleeAttack : MonoBehaviour
     [Header("Фидбек попадания")]
     [Tooltip("Длительность хитстопа (реальные сек). 0 = выключить.")]
     public float hitStopDuration = 0.05f;
-    [Tooltip("Длительность тряски камеры при попадании.")]
-    public float shakeDuration = 0.12f;
-    [Tooltip("Сила тряски при попадании по врагу (меньше, чем при уроне по игроку).")]
-    public float shakeMagnitude = 0.12f;
+    [Tooltip("Травма камеры при попадании по врагу [0..1]. Квадратируется внутри — 0.35 = ощутимый удар.")]
+    [Range(0f, 1f)]
+    public float hitTrauma = 0.15f;
     [Tooltip("Сила отскока врага.")]
     public float knockbackForce = 12f;
     [Tooltip("Префаб эффекта попадания (партикл/вспышка). Необязательно.")]
@@ -79,7 +78,7 @@ public class MeleeAttack : MonoBehaviour
             HitStop.Instance.Freeze(hitStopDuration);
 
         if (CameraShake.Instance != null)
-            CameraShake.Instance.Shake(shakeDuration, shakeMagnitude);
+            CameraShake.Instance.AddTrauma(hitTrauma);
 
         if (hitEffectPrefab != null)
             Destroy(Instantiate(hitEffectPrefab, hit.point, Quaternion.LookRotation(hit.normal)), 2f);
