@@ -27,13 +27,17 @@ public class MeleeAttack : MonoBehaviour
     public float knockbackForce = 12f;
     [Tooltip("Префаб эффекта попадания (партикл/вспышка). Необязательно.")]
     public GameObject hitEffectPrefab;
+    [Tooltip("Звук попадания (нужен AudioSource на игроке).")]
+    public AudioClip hitSound;
 
     private float lastAttackTime = -999f;
+    private AudioSource audioSource;
 
     void Start()
     {
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -82,6 +86,9 @@ public class MeleeAttack : MonoBehaviour
 
         if (hitEffectPrefab != null)
             Destroy(Instantiate(hitEffectPrefab, hit.point, Quaternion.LookRotation(hit.normal)), 2f);
+
+        if (audioSource != null && hitSound != null)
+            audioSource.PlayOneShot(hitSound);
 
         // оттолкнуть врага от игрока
         EnemyAI enemy = hp.GetComponent<EnemyAI>();
