@@ -22,7 +22,7 @@ public class MeleeAttack : MonoBehaviour
     public float hitStopDuration = 0.05f;
     [Tooltip("Травма камеры при попадании по врагу [0..1]. Квадратируется внутри — 0.35 = ощутимый удар.")]
     [Range(0f, 1f)]
-    public float hitTrauma = 0.15f;
+    public float hitTrauma = 0.2f;
     [Tooltip("Сила отскока врага.")]
     public float knockbackForce = 12f;
     [Tooltip("Префаб эффекта попадания (партикл/вспышка). Необязательно.")]

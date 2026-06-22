@@ -80,7 +80,7 @@ public class EnemyAI : MonoBehaviour
                     hp.TakeDamage(damage);
                     // урон по игроку трясёт сильнее, чем наши удары по врагам
                     if (CameraShake.Instance != null)
-                        CameraShake.Instance.Shake(0.2f, 0.3f);
+                        CameraShake.Instance.AddTrauma(0.45f);
                 }
             }
         }
