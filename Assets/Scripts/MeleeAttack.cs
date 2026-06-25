@@ -14,7 +14,17 @@ public class MeleeAttack : MonoBehaviour
     [Header("Ссылки")]
     [Tooltip("Откуда бьём. Обычно Main Camera. Если пусто — найдётся автоматически.")]
     public Transform cameraTransform;
-    [Tooltip("Куб-рука для простого замаха (необязательно).")]
+    [Tooltip("Animator руки (Generic FBX). Главный способ для скелетных моделей.")]
+    public Animator handAnimator;
+    [Tooltip("Имя состояния (state) в Animator Controller с клипом замаха.")]
+    public string swingStateName = "ClawSwipe";
+    [Tooltip("Старый Legacy-компонент Animation (если используешь не Animator, а Animation).")]
+    public Animation handAnimation;
+    [Tooltip("Имя клипа замаха внутри handAnimation (для Legacy-варианта).")]
+    public string swingClipName = "ClawSwipe";
+    [Tooltip("Скорость проигрывания клипа замаха (1 = как есть, 2 = вдвое быстрее).")]
+    public float swingSpeed = 1f;
+    [Tooltip("Старый куб-рука для простого замаха. Фолбэк, если ничего не назначено.")]
     public Transform handTransform;
 
     [Header("Фидбек попадания")]
@@ -38,6 +48,13 @@ public class MeleeAttack : MonoBehaviour
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
         audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            // страховка: если источник забыли добавить — создаём сами
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D-звук
+        }
     }
 
     void Update()
@@ -56,11 +73,7 @@ public class MeleeAttack : MonoBehaviour
         lastAttackTime = Time.time;
 
         // визуальный замах рукой
-        if (handTransform != null)
-        {
-            StopAllCoroutines();
-            StartCoroutine(SwingHand());
-        }
+        PlaySwing();
 
         // луч вперёд из центра камеры
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
@@ -94,6 +107,37 @@ public class MeleeAttack : MonoBehaviour
         EnemyAI enemy = hp.GetComponent<EnemyAI>();
         if (enemy != null)
             enemy.ApplyKnockback(cameraTransform.forward, knockbackForce);
+    }
+
+    // запуск замаха: Animator (приоритет) -> Legacy Animation -> старый куб
+    void PlaySwing()
+    {
+        // 1) Animator (Generic FBX) — основной путь
+        if (handAnimator != null && !string.IsNullOrEmpty(swingStateName))
+        {
+            handAnimator.speed = swingSpeed;
+            handAnimator.Play(swingStateName, 0, 0f); // всегда с начала, даже при спаме ЛКМ
+            return;
+        }
+
+        // 2) Legacy Animation
+        if (handAnimation != null && !string.IsNullOrEmpty(swingClipName) &&
+            handAnimation.GetClip(swingClipName) != null)
+        {
+            AnimationState st = handAnimation[swingClipName];
+            st.wrapMode = WrapMode.Once;
+            st.speed = swingSpeed;
+            st.time = 0f;
+            handAnimation.Play(swingClipName, PlayMode.StopAll);
+            return;
+        }
+
+        // 3) старый куб-фолбэк
+        if (handTransform != null)
+        {
+            StopAllCoroutines();
+            StartCoroutine(SwingHand());
+        }
     }
 
     // простой замах: рука дёргается вперёд и возвращается
