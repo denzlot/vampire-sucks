@@ -11,6 +11,9 @@ public class Health : MonoBehaviour
     [Tooltip("Пока true — урон не проходит (используется дэшем для i-frames).")]
     public bool isInvulnerable = false;
 
+    [Tooltip("Уничтожать объект при смерти. Пулинг ставит false, чтобы вернуть врага в пул, а не Destroy.")]
+    public bool destroyOnDeath = true;
+
     [Header("События (можно оставить пустыми)")]
     [Tooltip("Сработает при получении урона")]
     public UnityEvent onDamaged;
@@ -18,6 +21,13 @@ public class Health : MonoBehaviour
     public UnityEvent onDeath;
 
     void Awake()
+    {
+        currentHealth = maxHealth;
+    }
+
+    // Сброс при каждом включении объекта — нужно для повторного использования из пула:
+    // переиспользованный враг снова получает полное здоровье и считается живым.
+    void OnEnable()
     {
         currentHealth = maxHealth;
     }
@@ -41,6 +51,7 @@ public class Health : MonoBehaviour
     void Die()
     {
         onDeath?.Invoke();
-        Destroy(gameObject);
+        // Пуловый враг ставит destroyOnDeath = false и сам вернётся в пул через onDeath.
+        if (destroyOnDeath) Destroy(gameObject);
     }
 }

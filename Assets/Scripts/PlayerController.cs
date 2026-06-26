@@ -55,6 +55,13 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         health = GetComponent<Health>();
         audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            // страховка: если источник забыли добавить — создаём сами
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D-звук
+        }
 
         // прячем курсор и фиксируем в центре экрана
         Cursor.lockState = CursorLockMode.Locked;

@@ -1,11 +1,25 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Спавнит врагов кольцом вокруг игрока через равные промежутки.
 // Вешается на пустой объект Spawner в сцене.
 public class EnemySpawner : MonoBehaviour
 {
+    // Один тип врага и его "вес" (относительная частота появления).
+    [System.Serializable]
+    public class EnemyType
+    {
+        [Tooltip("Префаб врага.")]
+        public GameObject prefab;
+        [Tooltip("Вес: чем больше, тем чаще спавнится этот тип относительно других.")]
+        public float weight = 1f;
+    }
+
     [Header("Что спавнить")]
-    [Tooltip("Перетащи сюда префаб врага (Enemy из папки Project).")]
+    [Tooltip("Список типов врагов со своими весами. Если пусто — используется одиночный Enemy Prefab ниже.")]
+    public List<EnemyType> enemyTypes = new();
+
+    [Tooltip("Запасной одиночный префаб (используется, если список Enemy Types пуст).")]
     public GameObject enemyPrefab;
 
     [Header("Параметры спавна")]
@@ -52,9 +66,32 @@ public class EnemySpawner : MonoBehaviour
         return GameObject.FindGameObjectsWithTag("Enemy").Length;
     }
 
+    // Выбирает префаб: взвешенный случайный из enemyTypes, иначе запасной enemyPrefab.
+    GameObject PickPrefab()
+    {
+        // суммарный вес валидных типов
+        float total = 0f;
+        foreach (var t in enemyTypes)
+            if (t != null && t.prefab != null && t.weight > 0f) total += t.weight;
+
+        if (total > 0f)
+        {
+            float r = Random.Range(0f, total);
+            foreach (var t in enemyTypes)
+            {
+                if (t == null || t.prefab == null || t.weight <= 0f) continue;
+                r -= t.weight;
+                if (r <= 0f) return t.prefab;
+            }
+        }
+
+        return enemyPrefab;   // запасной вариант
+    }
+
     void Spawn()
     {
-        if (enemyPrefab == null) return;
+        GameObject prefab = PickPrefab();
+        if (prefab == null) return;
 
         Vector3 center = player != null ? player.position : transform.position;
 
@@ -67,6 +104,8 @@ public class EnemySpawner : MonoBehaviour
         float radius = Random.Range(safeMin, safeMax);
         Vector3 offset = new Vector3(Mathf.Cos(angle) * radius, spawnHeight, Mathf.Sin(angle) * radius);
 
-        Instantiate(enemyPrefab, center + offset, Quaternion.identity);
+        // берём врага из пула (создаст менеджер, если его ещё нет)
+        EnemyPool.EnsureExists();
+        EnemyPool.Instance.Get(prefab, center + offset, Quaternion.identity);
     }
 }

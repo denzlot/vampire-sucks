@@ -16,6 +16,16 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("Как быстро гаснет отскок (больше = короче толчок).")]
     public float knockbackDecay = 40f;
 
+    [Header("Поворот модели")]
+    [Tooltip("Коррекция разворота, если модель смотрит не вперёд. Обычно 0, -90 или 90/180. Подбери, чтобы враг смотрел на игрока.")]
+    public float modelYawOffset = 0f;
+
+    [Header("Анимация")]
+    [Tooltip("Множитель скорости анимации (1 = норма). Для быстрых врагов поставь > 1.")]
+    public float animationSpeed = 1f;
+
+    private Animator animator;
+
     private Transform player;
     private float lastAttackTime;
     private CharacterController cc;
@@ -37,6 +47,17 @@ public class EnemyAI : MonoBehaviour
         if (p != null) player = p.transform;
     }
 
+    // сбрасываем состояние при каждом респавне из пула
+    void OnEnable()
+    {
+        knockbackVelocity = Vector3.zero;
+        lastAttackTime = -999f;   // чтобы переиспользованный из пула враг не бил сразу
+
+        // применяем скорость анимации (для каждого типа врага своя)
+        if (animator == null) animator = GetComponentInChildren<Animator>();
+        if (animator != null) animator.speed = animationSpeed;
+    }
+
     void Update()
     {
         if (player == null) return;
@@ -55,9 +76,9 @@ public class EnemyAI : MonoBehaviour
         toPlayer.y = 0f;
         float distance = toPlayer.magnitude;
 
-        // повернуться лицом к игроку
+        // повернуться лицом к игроку (с коррекцией, если модель смотрит вбок)
         if (toPlayer.sqrMagnitude > 0.01f)
-            transform.rotation = Quaternion.LookRotation(toPlayer);
+            transform.rotation = Quaternion.LookRotation(toPlayer) * Quaternion.Euler(0f, modelYawOffset, 0f);
 
         if (distance > attackRange)
         {
