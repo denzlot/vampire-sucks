@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5693538126259236110}
   - component: {fileID: 456466847454266839}
   - component: {fileID: 3346199004832620616}
-  - component: {fileID: 2758723526991128412}
   - component: {fileID: 7032785886696181968}
   m_Layer: 0
   m_Name: Enemy_Runner
@@ -103,18 +102,6 @@ MonoBehaviour:
   knockbackDecay: 40
   modelYawOffset: 0
   animationSpeed: 2
---- !u!114 &2758723526991128412
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 37231355526885551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff8d1ca2bd91ff24cafb1cfad12ce678, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PooledEnemy
 --- !u!95 &7032785886696181968
 Animator:
   serializedVersion: 7

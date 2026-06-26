@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 3717869175725854814}
   - component: {fileID: 1396402734043685082}
   - component: {fileID: 2977810934270671696}
-  - component: {fileID: 3145984079433385460}
   - component: {fileID: 3420803357065228690}
   m_Layer: 0
   m_Name: Abu
@@ -103,18 +102,6 @@ MonoBehaviour:
   knockbackDecay: 40
   modelYawOffset: 0
   animationSpeed: 1
---- !u!114 &3145984079433385460
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2056401014231412634}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff8d1ca2bd91ff24cafb1cfad12ce678, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PooledEnemy
 --- !u!95 &3420803357065228690
 Animator:
   serializedVersion: 7

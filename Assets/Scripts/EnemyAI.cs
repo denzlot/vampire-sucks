@@ -51,6 +51,7 @@ public class EnemyAI : MonoBehaviour
     void OnEnable()
     {
         knockbackVelocity = Vector3.zero;
+        lastAttackTime = -999f;   // чтобы переиспользованный из пула враг не бил сразу
 
         // применяем скорость анимации (для каждого типа врага своя)
         if (animator == null) animator = GetComponentInChildren<Animator>();

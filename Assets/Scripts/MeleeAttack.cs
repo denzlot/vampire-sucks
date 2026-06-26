@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem; // новый Input System
 
@@ -7,9 +8,16 @@ using UnityEngine.InputSystem; // новый Input System
 public class MeleeAttack : MonoBehaviour
 {
     [Header("Параметры удара")]
-    public float range = 2f;        // дистанция удара в метрах
+    public float range = 2f;        // радиус удара в метрах
     public int damage = 105;         // урон за удар
     public float cooldown = 0.4f;   // пауза между ударами
+
+    [Header("Урон по области")]
+    [Tooltip("Полуугол сектора перед игроком (в градусах). 90 = бьёт по всей передней полусфере (180° дуга). 180 = по кругу.")]
+    [Range(10f, 180f)]
+    public float aoeAngle = 100f;
+    [Tooltip("По каким слоям искать врагов. Оставь Everything, если не настраивал слои.")]
+    public LayerMask hitMask = ~0;
 
     [Header("Ссылки")]
     [Tooltip("Откуда бьём. Обычно Main Camera. Если пусто — найдётся автоматически.")]
@@ -75,38 +83,65 @@ public class MeleeAttack : MonoBehaviour
         // визуальный замах рукой
         PlaySwing();
 
-        // луч вперёд из центра камеры
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+        Vector3 origin = transform.position;                 // центр сектора — игрок
+        Vector3 aim = cameraTransform.forward;               // куда смотрим
+        aim.y = 0f;                                           // удар горизонтальный
+        if (aim.sqrMagnitude < 0.001f) aim = transform.forward;
+        aim.Normalize();
+
+        // собираем всех в радиусе и бьём тех, кто в секторе перед игроком
+        Collider[] cols = Physics.OverlapSphere(origin, range, hitMask, QueryTriggerInteraction.Ignore);
+        HashSet<Health> alreadyHit = new HashSet<Health>();
+        bool anyHit = false;
+
+        foreach (Collider col in cols)
         {
-            Health hp = hit.collider.GetComponent<Health>();
-            if (hp != null)
-            {
-                hp.TakeDamage(damage);
-                TriggerHitFeedback(hit, hp);
-            }
+            Health hp = col.GetComponentInParent<Health>();
+            if (hp == null) continue;
+            if (hp.gameObject == gameObject) continue;        // себя не бьём
+            if (!alreadyHit.Add(hp)) continue;                // один враг — один раз за удар
+
+            // фильтр по сектору: цель должна быть перед игроком в пределах aoeAngle
+            Vector3 toTarget = hp.transform.position - origin;
+            toTarget.y = 0f;
+            if (toTarget.sqrMagnitude > 0.0001f && Vector3.Angle(aim, toTarget) > aoeAngle)
+                continue;
+
+            hp.TakeDamage(damage);
+            ApplyHitToEnemy(hp, origin);
+            anyHit = true;
         }
+
+        // "сок" — один раз за удар, если хоть кого-то задели
+        if (anyHit) TriggerGlobalFeedback();
     }
 
-    // весь "сок" попадания: хитстоп + тряска + вспышка + отскок врага
-    void TriggerHitFeedback(RaycastHit hit, Health hp)
+    // эффект и отскок — каждому задетому врагу
+    void ApplyHitToEnemy(Health hp, Vector3 origin)
     {
-        if (hitStopDuration > 0f)
+        Vector3 dir = hp.transform.position - origin;        // толкаем от игрока
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.0001f) dir = transform.forward;
+
+        if (hitEffectPrefab != null)
+            Destroy(Instantiate(hitEffectPrefab, hp.transform.position, Quaternion.LookRotation(dir.normalized)), 2f);
+
+        EnemyAI enemy = hp.GetComponent<EnemyAI>();
+        if (enemy != null)
+            enemy.ApplyKnockback(dir, knockbackForce);
+    }
+
+    // общий фидбек удара: хитстоп + тряска камеры + звук (один раз за удар)
+    void TriggerGlobalFeedback()
+    {
+        if (hitStopDuration > 0f && HitStop.Instance != null)
             HitStop.Instance.Freeze(hitStopDuration);
 
         if (CameraShake.Instance != null)
             CameraShake.Instance.AddTrauma(hitTrauma);
 
-        if (hitEffectPrefab != null)
-            Destroy(Instantiate(hitEffectPrefab, hit.point, Quaternion.LookRotation(hit.normal)), 2f);
-
         if (audioSource != null && hitSound != null)
             audioSource.PlayOneShot(hitSound);
-
-        // оттолкнуть врага от игрока
-        EnemyAI enemy = hp.GetComponent<EnemyAI>();
-        if (enemy != null)
-            enemy.ApplyKnockback(cameraTransform.forward, knockbackForce);
     }
 
     // запуск замаха: Animator (приоритет) -> Legacy Animation -> старый куб
