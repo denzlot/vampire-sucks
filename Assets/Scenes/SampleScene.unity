@@ -840,6 +840,7 @@ MonoBehaviour:
   maxHealth: 300
   currentHealth: 0
   isInvulnerable: 0
+  destroyOnDeath: 1
   onDamaged:
     m_PersistentCalls:
       m_Calls: []
@@ -861,6 +862,10 @@ MonoBehaviour:
   range: 4
   damage: 25
   cooldown: 0.4
+  aoeAngle: 100
+  hitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   cameraTransform: {fileID: 963194228}
   handAnimator: {fileID: 670069716}
   swingStateName: ClawSwipe
@@ -869,12 +874,10 @@ MonoBehaviour:
   swingSpeed: 2.5
   handTransform: {fileID: 0}
   hitStopDuration: 0.06
-  shakeDuration: 0.12
-  shakeMagnitude: 0.12
+  hitTrauma: 0.2
   knockbackForce: 12
   hitEffectPrefab: {fileID: 0}
   hitSound: {fileID: 8300000, guid: fdfed974b9f7f824385c057623b88943, type: 3}
-  hitVolume: 1
 --- !u!114 &439212604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -895,7 +898,6 @@ MonoBehaviour:
   dashDuration: 0.15
   dashCooldown: 0.3
   dashSound: {fileID: 8300000, guid: f3d570cc387120948bd20e380d187351, type: 3}
-  dashVolume: 1
   dashFovKick: 8
   mouseSensitivity: 0.1
   cameraTransform: {fileID: 0}
@@ -1547,6 +1549,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 320d02b522a358c4b9be405b17e63964, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraShake
+  traumaDecaySpeed: 1.8
+  maxPositionShake: 0.6
+  maxAngleShake: 5
+  noiseFrequency: 18
 --- !u!1 &991616744
 GameObject:
   m_ObjectHideFlags: 0
@@ -2062,6 +2068,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ea7ebc3be9c9d346a788e75b94bfb4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
+  enemyTypes:
+  - prefab: {fileID: 2056401014231412634, guid: 8ca16d2a7a37cba4d8f4fa921826b144, type: 3}
+    weight: 3
+  - prefab: {fileID: 2056401014231412634, guid: 0df20a58b9b5eaa4a97f8a5189820105, type: 3}
+    weight: 3
+  - prefab: {fileID: 37231355526885551, guid: dcd5df348f2136e47945e9b495e70572, type: 3}
+    weight: 2
   enemyPrefab: {fileID: 2056401014231412634, guid: 0df20a58b9b5eaa4a97f8a5189820105, type: 3}
   spawnInterval: 1
   minRadius: 12
@@ -2731,4 +2744,3 @@ SceneRoots:
   - {fileID: 1559601920}
   - {fileID: 100692850}
   - {fileID: 2100476894}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
