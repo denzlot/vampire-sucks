@@ -47,6 +47,14 @@ public class PooledEnemy : MonoBehaviour
         else gameObject.SetActive(false);   // подстраховка, если пул потерян
     }
 
+    // Деспавн БЕЗ смерти (для далёких врагов): не роняет кровь, не считается убийством.
+    public void Recycle()
+    {
+        CancelInvoke(nameof(ReturnNow));
+        if (pool != null) pool.Return(this);
+        else gameObject.SetActive(false);
+    }
+
     void OnDestroy()
     {
         if (health != null) health.onDeath.RemoveListener(OnEnemyDeath);

@@ -24,7 +24,12 @@ public class EnemyAI : MonoBehaviour
     [Tooltip("Множитель скорости анимации (1 = норма). Для быстрых врагов поставь > 1.")]
     public float animationSpeed = 1f;
 
+    [Header("Авто-деспавн")]
+    [Tooltip("Если враг дальше этого расстояния от игрока — он рециклится в пул (как в VS). 0 = выключить.")]
+    public float despawnRadius = 40f;
+
     private Animator animator;
+    private PooledEnemy pooled;
 
     private Transform player;
     private float lastAttackTime;
@@ -61,6 +66,17 @@ public class EnemyAI : MonoBehaviour
     void Update()
     {
         if (player == null) return;
+
+        // авто-деспавн: ушёл слишком далеко — вернуть в пул (толпа держится у игрока)
+        if (despawnRadius > 0f)
+        {
+            float distToPlayer = Vector3.Distance(transform.position, player.position);
+            if (distToPlayer > despawnRadius)
+            {
+                if (pooled == null) pooled = GetComponent<PooledEnemy>();
+                if (pooled != null) { pooled.Recycle(); return; }
+            }
+        }
 
         // отскок поверх обычного движения (и его затухание)
         if (knockbackVelocity.sqrMagnitude > 0.01f)

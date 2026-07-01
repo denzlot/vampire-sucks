@@ -8,6 +8,9 @@ public class EnemyPool : MonoBehaviour
 {
     public static EnemyPool Instance { get; private set; }
 
+    // сколько врагов сейчас активно (для "director"-спавнера)
+    public int ActiveCount { get; private set; }
+
     // отдельная очередь "спящих" экземпляров на каждый префаб
     private readonly Dictionary<GameObject, Queue<PooledEnemy>> pools = new();
 
@@ -68,6 +71,7 @@ public class EnemyPool : MonoBehaviour
         }
 
         pe.gameObject.SetActive(true);   // разбудит OnEnable у Health/EnemyAI -> сброс состояния
+        ActiveCount++;
         return pe.gameObject;
     }
 
@@ -75,8 +79,10 @@ public class EnemyPool : MonoBehaviour
     public void Return(PooledEnemy pe)
     {
         if (pe == null) return;
+        if (!pe.gameObject.activeSelf) return;   // защита от двойного возврата
 
         pe.gameObject.SetActive(false);
+        ActiveCount = Mathf.Max(0, ActiveCount - 1);
 
         if (!pools.TryGetValue(pe.SourcePrefab, out var q))
         {
